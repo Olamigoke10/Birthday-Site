@@ -1,21 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const SEED_ENTRIES = [
-  {
-    id: 'seed-1', name: 'Mia Clarke', relation: 'Best Friend', date: 'June 18, 2026',
-    msg: 'To the woman who turns every ordinary Tuesday into something worth remembering — may this birthday be as luminous and extraordinary as you are.',
-  },
-  {
-    id: 'seed-2', name: 'James Rivera', relation: 'Family', date: 'June 18, 2026',
-    msg: "Watching you bloom into the remarkable person you are today has been one of the greatest joys of my life. Happy Birthday, Dara!",
-  },
-  {
-    id: 'seed-3', name: 'Amara Osei', relation: 'Colleague', date: 'June 18, 2026',
-    msg: 'Your warmth and brilliance light up every room. Wishing you a birthday filled with the same joy and energy you give to everyone around you.',
-  },
-]
-
 const RELATIONS = [
   { value: 'friend',    label: 'Friend' },
   { value: 'family',    label: 'Family' },
@@ -24,38 +9,41 @@ const RELATIONS = [
   { value: 'other',     label: 'Other' },
 ]
 
+function toEntry(row) {
+  return {
+    id:       row.id,
+    name:     row.name,
+    relation: row.relation,
+    date:     new Date(row.created_at).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    }),
+    msg: row.message,
+  }
+}
+
 export default function GuestBook() {
-  const [entries,  setEntries]  = useState(SEED_ENTRIES)
+  const [entries,  setEntries]  = useState([])
+  const [loading,  setLoading]  = useState(true)
   const [name,     setName]     = useState('')
   const [relation, setRelation] = useState('friend')
   const [message,  setMessage]  = useState('')
   const [saving,   setSaving]   = useState(false)
-  const [loaded,   setLoaded]   = useState(false)
 
-  /* ── Fetch saved messages from Supabase ── */
+  /* ── Load messages from Supabase on mount ── */
   useEffect(() => {
-    if (!supabase) return
+    if (!supabase) { setLoading(false); return }
+
     supabase
       .from('guest_messages')
       .select('*')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (!error && data?.length) {
-          setEntries(data.map(d => ({
-            id:       d.id,
-            name:     d.name,
-            relation: d.relation,
-            date:     new Date(d.created_at).toLocaleDateString('en-GB', {
-              day: 'numeric', month: 'long', year: 'numeric',
-            }),
-            msg: d.message,
-          })))
-        }
-        setLoaded(true)
+        if (!error && data) setEntries(data.map(toEntry))
+        setLoading(false)
       })
   }, [])
 
-  /* ── Real-time updates ── */
+  /* ── Real-time: insert new rows from OTHER visitors ── */
   useEffect(() => {
     if (!supabase) return
     const channel = supabase
@@ -63,18 +51,9 @@ export default function GuestBook() {
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'guest_messages' },
         ({ new: row }) => {
-          setEntries(prev => {
-            if (prev.find(e => e.id === row.id)) return prev
-            return [{
-              id:       row.id,
-              name:     row.name,
-              relation: row.relation,
-              date:     new Date(row.created_at).toLocaleDateString('en-GB', {
-                day: 'numeric', month: 'long', year: 'numeric',
-              }),
-              msg: row.message,
-            }, ...prev]
-          })
+          setEntries(prev =>
+            prev.find(e => e.id === row.id) ? prev : [toEntry(row), ...prev]
+          )
         })
       .subscribe()
     return () => supabase.removeChannel(channel)
@@ -85,32 +64,31 @@ export default function GuestBook() {
     if (!name.trim() || !message.trim()) return
 
     const relLabel = RELATIONS.find(r => r.value === relation)?.label ?? 'Guest'
-    const date     = new Date().toLocaleDateString('en-GB', {
-      day: 'numeric', month: 'long', year: 'numeric',
-    })
-    const newEntry = {
-      id:       Date.now().toString(),
-      name:     name.trim(),
-      relation: relLabel,
-      date,
-      msg:      message.trim(),
-    }
-
     setSaving(true)
 
     if (supabase) {
-      const { error } = await supabase.from('guest_messages').insert({
-        name:     name.trim(),
-        relation: relLabel,
-        message:  message.trim(),
-      })
-      if (!error) {
-        /* Real-time subscription will add it — only add locally if no realtime */
-      } else {
-        setEntries(prev => [newEntry, ...prev])
+      /* Save to DB — the real-time subscription will add it to the list */
+      const { data, error } = await supabase
+        .from('guest_messages')
+        .insert({ name: name.trim(), relation: relLabel, message: message.trim() })
+        .select()
+        .single()
+
+      if (!error && data) {
+        /* Optimistically add immediately in case real-time is slow */
+        setEntries(prev =>
+          prev.find(e => e.id === data.id) ? prev : [toEntry(data), ...prev]
+        )
       }
     } else {
-      setEntries(prev => [newEntry, ...prev])
+      /* No Supabase — add to local state (won't persist across reloads) */
+      setEntries(prev => [{
+        id:       Date.now().toString(),
+        name:     name.trim(),
+        relation: relLabel,
+        date:     new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        msg:      message.trim(),
+      }, ...prev])
     }
 
     setSaving(false)
@@ -118,31 +96,19 @@ export default function GuestBook() {
   }
 
   return (
-    <section className="slide-section guestbook-slide">
-      <div className="w-full max-w-6xl mx-auto px-6 flex flex-col h-full">
+    <section id="guestbook" className="py-28 bg-cream-dark">
+      <div className="max-w-6xl mx-auto px-6">
+        <p className="section-tag reveal">Leave your mark</p>
+        <h2 className="section-title reveal">Guest <em className="italic text-rose">Book</em></h2>
+        <p className="section-desc reveal">
+          Share a birthday wish for Dara — a memory, a kind word, or something from the heart.
+        </p>
 
-        {/* Header */}
-        <div className="pt-24 pb-6 flex-shrink-0">
-          <p className="section-tag reveal-slide">Leave your mark</p>
-          <h2 className="section-title reveal-slide">
-            Guest <em className="italic text-rose">Book</em>
-          </h2>
-          <p className="text-sm text-ink-soft max-w-lg reveal-slide">
-            Share a birthday wish for Dara — a memory, a kind word, or something from the heart.
-            {!supabase && (
-              <span className="block mt-1 text-ink-muted text-xs">
-                (Messages saved locally — connect Supabase to persist across visitors)
-              </span>
-            )}
-          </p>
-        </div>
-
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-6 flex-1 pb-24 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
           {/* Form */}
           <form onSubmit={handleSubmit}
-            className="bg-white rounded-3xl p-6 shadow-sm flex flex-col gap-4 reveal-slide self-start">
+            className="bg-white rounded-3xl p-8 shadow-sm reveal">
             <Field label="Your Name">
               <input type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="e.g. Sarah M." required className="input-base" />
@@ -154,29 +120,37 @@ export default function GuestBook() {
             </Field>
             <Field label="Your Message">
               <textarea value={message} onChange={e => setMessage(e.target.value)}
-                rows={4} placeholder="Write something from the heart…"
-                required className="input-base resize-none" />
+                rows={5} placeholder="Write something from the heart…"
+                required className="input-base resize-y" />
             </Field>
             <button type="submit" disabled={saving}
-              className="btn-primary justify-center disabled:opacity-60">
+              className="btn-primary w-full justify-center mt-4 disabled:opacity-60">
               {saving ? 'Saving…' : 'Post Message ✦'}
             </button>
           </form>
 
           {/* Entries */}
-          <div className="entries-scroll reveal-slide">
+          <div className="flex flex-col gap-4 max-h-[680px] overflow-y-auto pr-1 reveal">
+            {loading && (
+              <p className="text-sm text-ink-muted italic text-center py-8">Loading messages…</p>
+            )}
+            {!loading && entries.length === 0 && (
+              <p className="text-sm text-ink-muted italic text-center py-8">
+                Be the first to leave a message for Dara ✦
+              </p>
+            )}
             {entries.map(entry => (
-              <div key={entry.id} className="gb-entry bg-white rounded-2xl p-5 shadow-sm border-l-4 border-rose">
+              <div key={entry.id} className="gb-entry bg-white rounded-2xl p-6 shadow-sm border-l-4 border-rose">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-rose-dark font-semibold text-sm flex-shrink-0"
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-rose-dark font-semibold flex-shrink-0"
                     style={{ background: 'linear-gradient(135deg,#f9d5d3,#d4a5b5)' }}>
                     {entry.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <strong className="block text-sm text-ink leading-tight">{entry.name}</strong>
+                    <strong className="block text-sm text-ink">{entry.name}</strong>
                     <span className="text-xs text-ink-muted">{entry.relation}</span>
                   </div>
-                  <time className="text-xs text-ink-muted flex-shrink-0">{entry.date}</time>
+                  <time className="text-xs text-ink-muted">{entry.date}</time>
                 </div>
                 <p className="italic text-ink-soft text-sm leading-relaxed">"{entry.msg}"</p>
               </div>
@@ -191,8 +165,8 @@ export default function GuestBook() {
 
 function Field({ label, children }) {
   return (
-    <div>
-      <label className="block text-xs font-medium tracking-widest uppercase text-ink-soft mb-1.5">{label}</label>
+    <div className="mb-5">
+      <label className="block text-xs font-medium tracking-widest uppercase text-ink-soft mb-2">{label}</label>
       {children}
     </div>
   )
