@@ -3,218 +3,34 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root { height: 100%; overflow: hidden; }
+  html { scroll-behavior: smooth; }
   body {
     font-family: 'Jost', system-ui, sans-serif;
-    background: #fdf8f2;
+    background-color: #fdf8f2;
     color: #3d2c2c;
-    overflow: hidden;          /* no page scroll — slides handle navigation */
+    overflow-x: hidden;
   }
   * { box-sizing: border-box; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track  { background: #f7ede2; }
-  ::-webkit-scrollbar-thumb  { background: #e8b4b8; border-radius: 99px; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #f7ede2; }
+  ::-webkit-scrollbar-thumb { background: #e8b4b8; border-radius: 99px; }
 }
-
-/* ═══════════════════════════════════════════
-   SLIDE ENGINE
-   ═══════════════════════════════════════════ */
-
-/* Root that fills the viewport */
-.slides-root {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
-/* Horizontal track — GSAP moves this */
-.slides-track {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  display: flex;
-  will-change: transform;
-}
-
-/* Individual slide panels */
-.slide-panel {
-  height: 100%;
-  overflow: hidden;
-  position: relative;
-  flex-shrink: 0;
-  will-change: transform, opacity;
-}
-
-/* Section inside each panel — full height, flex column */
-.slide-section {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Hero variant */
-.hero-slide {
-  justify-content: center;
-}
-
-/* Photos & GuestBook — top-aligned, scrollable internally */
-.photos-slide,
-.guestbook-slide {
-  justify-content: flex-start;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* ── Photos grid inside slide ── */
-.photos-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 175px;
-  gap: 12px;
-  overflow: hidden;
-}
-
-/* ── Guest book entries scroll ── */
-.entries-scroll {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-  max-height: 100%;
-  padding-right: 4px;
-}
-.entries-scroll::-webkit-scrollbar { width: 3px; }
-
-/* ── Footer bar (last slide) ── */
-.slide-footer-bar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 20;
-  transform: translateY(100%);
-  animation: footerSlideUp .5s .2s ease forwards;
-}
-@keyframes footerSlideUp {
-  to { transform: translateY(0); }
-}
-
-/* ═══════════════════════════════════════════
-   TOP NAV
-   ═══════════════════════════════════════════ */
-.slide-top-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 800;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.1rem 3rem;
-  background: rgba(253,248,242,.82);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(201,123,132,.1);
-}
-
-.nav-slide-link {
-  font-size: .75rem;
-  font-weight: 500;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: #7a5c60;
-  padding-bottom: 2px;
-  border-bottom: 1.5px solid transparent;
-  transition: color .25s, border-color .25s;
-}
-.nav-slide-link:hover  { color: #c97b84; }
-.nav-slide-link.active { color: #c97b84; border-bottom-color: #c97b84; }
-
-/* Nav mobile drawer */
-.nav-drawer {
-  transition: transform .35s cubic-bezier(.4,0,.2,1);
-  transform: translateX(100%);
-}
-.nav-drawer.open { transform: translateX(0); }
-
-/* ═══════════════════════════════════════════
-   SLIDE NAVIGATION (bottom)
-   ═══════════════════════════════════════════ */
-.slide-nav {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 800;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: rgba(253,248,242,.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(201,123,132,.18);
-  border-radius: 99px;
-  padding: .55rem 1.4rem;
-  box-shadow: 0 4px 24px rgba(180,120,120,.12);
-}
-
-.slide-arrow {
-  font-size: 1rem;
-  color: #c97b84;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .2s, color .2s, transform .2s;
-}
-.slide-arrow:hover:not(:disabled) {
-  background: #f9d5d3;
-  transform: scale(1.1);
-}
-.slide-arrow:disabled { color: #d4b8b8; cursor: default; }
-
-.slide-dots { display: flex; gap: .5rem; align-items: center; }
-
-.slide-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #e8b4b8;
-  transition: background .3s, transform .3s, width .3s;
-  flex-shrink: 0;
-}
-.slide-dot.active {
-  background: #c97b84;
-  transform: scale(1.3);
-  width: 20px;
-  border-radius: 99px;
-}
-
-.slide-counter {
-  font-size: .68rem;
-  font-weight: 500;
-  letter-spacing: .15em;
-  color: #b09090;
-  min-width: 3rem;
-  text-align: center;
-}
-
-/* ═══════════════════════════════════════════
-   COMPONENT STYLES
-   ═══════════════════════════════════════════ */
 
 @layer components {
   .section-tag {
-    @apply inline-block text-xs font-medium tracking-[.18em] uppercase text-gold mb-2;
+    @apply inline-block text-xs font-medium tracking-[.18em] uppercase text-gold mb-3;
   }
   .section-tag::before { content: '— '; }
   .section-tag::after  { content: ' —'; }
 
   .section-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    @apply text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1] text-ink mb-3;
+    @apply text-4xl md:text-5xl lg:text-6xl font-light leading-[1.1] text-ink mb-4;
+  }
+  .section-desc {
+    @apply text-base text-ink-soft max-w-lg leading-relaxed mb-12;
   }
 
-  /* Buttons */
   .btn-primary {
     @apply inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium tracking-widest uppercase text-white;
     background: linear-gradient(135deg, #c97b84, #a85965);
@@ -234,11 +50,7 @@
     color: #c97b84;
     transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
-  .btn-ghost:hover {
-    background: #f9d5d3;
-    transform: scale(1.04);
-    box-shadow: 0 4px 16px rgba(201,123,132,.2);
-  }
+  .btn-ghost:hover { background: #f9d5d3; transform: scale(1.04); }
 
   .celebrate-btn {
     transition: transform 200ms ease, box-shadow 200ms ease;
@@ -249,7 +61,7 @@
   }
 
   .input-base {
-    @apply w-full px-4 py-2.5 rounded-lg text-sm text-ink bg-cream border-[1.5px] border-blush-deep outline-none;
+    @apply w-full px-4 py-3 rounded-lg text-sm text-ink bg-cream border-[1.5px] border-blush-deep outline-none;
     transition: border-color 200ms, box-shadow 200ms;
   }
   .input-base:focus {
@@ -258,11 +70,7 @@
   }
 }
 
-/* ═══════════════════════════════════════════
-   KEYFRAMES & DECORATIONS
-   ═══════════════════════════════════════════ */
-
-/* Falling petals */
+/* ── Petals ── */
 .petal {
   position: absolute;
   border-radius: 50% 10% 50% 10%;
@@ -278,16 +86,16 @@
   100% { transform: translateY(105vh) rotate(360deg) translateX(60px); opacity: 0; }
 }
 
-/* Scroll indicator */
+/* ── Scroll indicator ── */
 @keyframes scrollLine {
   0%, 100% { transform: scaleY(1); opacity: 1; }
   50%       { transform: scaleY(.4); opacity: .3; }
 }
 .scroll-line { animation: scrollLine 1.8s ease-in-out infinite; }
 
-/* Decorative floats */
+/* ── Decorative elements ── */
 @keyframes float {
-  0%, 100% { transform: translateY(0)     rotate(-3deg); }
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
   50%       { transform: translateY(-18px) rotate(3deg); }
 }
 .deco-float { animation: float ease-in-out infinite; will-change: transform; }
@@ -301,71 +109,59 @@
 }
 .deco-pulse { animation: pulseGlow ease-in-out infinite; will-change: transform, filter; }
 
-/* ── Card hover micro-interactions ── */
+/* ── Reveal on scroll (GSAP-driven) ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition: opacity .65s ease, transform .65s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── Photo cards ── */
 .photo-card {
   transition: transform 200ms ease, box-shadow 200ms ease;
   will-change: transform;
 }
 .photo-card:hover {
-  transform: scale(1.04);
-  box-shadow: 0 16px 40px rgba(180,120,120,.28), 0 0 0 2px rgba(201,123,132,.2);
+  transform: scale(1.03);
+  box-shadow: 0 16px 40px rgba(180,120,120,.25), 0 0 0 2px rgba(201,123,132,.2);
   z-index: 2;
 }
 .photo-overlay {
-  opacity: 0;
-  transform: translateY(6px);
+  opacity: 0; transform: translateY(6px);
   transition: opacity 300ms ease, transform 300ms ease;
 }
 .photo-card:hover .photo-overlay { opacity: 1; transform: none; }
 .photo-img { transition: transform 600ms ease; }
 .photo-card:hover .photo-img { transform: scale(1.07); }
 
-/* Guest book entry */
+/* ── Guest book entries ── */
 .gb-entry {
   animation: entryIn .45s ease both;
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
 .gb-entry:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 8px 24px rgba(180,120,120,.14);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 28px rgba(180,120,120,.15);
 }
 @keyframes entryIn {
   from { opacity: 0; transform: translateY(14px) scale(0.97); }
   to   { opacity: 1; transform: none; }
 }
 
-/* Reveal on slide enter — controlled by GSAP */
-.reveal-slide {
-  opacity: 0;
+/* ── Nav mobile drawer ── */
+.nav-drawer {
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  transform: translateX(100%);
 }
+.nav-drawer.open { transform: translateX(0); }
 
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .slide-top-nav { padding: 1rem 1.5rem; }
-  .photos-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 140px;
-  }
-  .slide-nav { gap: .6rem; padding: .5rem 1rem; }
-}
-
-@media (max-width: 480px) {
-  .photos-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 120px;
-  }
-}
-
-/* ═══════════════════════════════════════════
-   REDUCED MOTION
-   ═══════════════════════════════════════════ */
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .petal, .deco-float, .deco-spin, .deco-pulse,
   .scroll-line, .gb-entry { animation: none !important; }
-  .reveal-slide { opacity: 1 !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
   .photo-card:hover, .btn-primary:hover,
   .btn-ghost:hover, .celebrate-btn:hover,
-  .gb-entry:hover { transform: none !important; }
+  .gb-entry:hover { transform: none; }
 }

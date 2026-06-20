@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 
 const PHOTOS = [
-  { id: 1, src: '/assets/photos/photo-1.jpg', cat: 'travel',       title: 'Our Weekend Escape',     caption: 'April 2023',      fallback: 'linear-gradient(135deg,#f9d5d3,#e8b4b8)' },
-  { id: 2, src: '/assets/photos/photo-2.jpg', cat: 'celebrations', title: "New Year's Eve Toast",    caption: 'December 2023',   fallback: 'linear-gradient(135deg,#f0e6f6,#d4a9d4)' },
-  { id: 3, src: '/assets/photos/photo-3.jpg', cat: 'everyday',     title: 'Sunday Morning Coffee',  caption: 'February 2024',   fallback: 'linear-gradient(135deg,#fef3cd,#f5cba7)' },
-  { id: 4, src: '/assets/photos/photo-4.jpg', cat: 'travel',       title: 'The Road Trip',          caption: 'August 2023',     fallback: 'linear-gradient(135deg,#d5f5e3,#a9d4c0)' },
-  { id: 5, src: '/assets/photos/photo-5.jpg', cat: 'celebrations', title: 'Our Anniversary Dinner', caption: 'March 2024',      fallback: 'linear-gradient(135deg,#fadbd8,#f1948a)' },
-  { id: 6, src: '/assets/photos/photo-6.jpg', cat: 'everyday',     title: 'Golden Hour Walk',       caption: 'October 2023',    fallback: 'linear-gradient(135deg,#d6eaf8,#a9cce3)' },
+  { id: 1, src: '/assets/photos/photo-1.jpg', cat: 'travel',       title: 'Our Weekend Escape',     caption: 'April 2023 · The coast was our whole world that day.',     fallback: 'linear-gradient(135deg,#f9d5d3,#e8b4b8)', span: '' },
+  { id: 2, src: '/assets/photos/photo-2.jpg', cat: 'celebrations', title: "New Year's Eve Toast",    caption: 'December 2023 · Champagne and a midnight wish for us.',    fallback: 'linear-gradient(135deg,#f0e6f6,#d4a9d4)', span: 'tall' },
+  { id: 3, src: '/assets/photos/photo-3.jpg', cat: 'everyday',     title: 'Sunday Morning Coffee',  caption: 'February 2024 · Slow mornings are our favourite luxury.',  fallback: 'linear-gradient(135deg,#fef3cd,#f5cba7)', span: '' },
+  { id: 4, src: '/assets/photos/photo-4.jpg', cat: 'travel',       title: 'The Road Trip',          caption: 'August 2023 · Windows down, music loud, you beside me.',  fallback: 'linear-gradient(135deg,#d5f5e3,#a9d4c0)', span: 'wide' },
+  { id: 5, src: '/assets/photos/photo-5.jpg', cat: 'celebrations', title: 'Our Anniversary Dinner', caption: 'March 2024 · Two years of choosing each other.',            fallback: 'linear-gradient(135deg,#fadbd8,#f1948a)', span: '' },
+  { id: 6, src: '/assets/photos/photo-6.jpg', cat: 'everyday',     title: 'Golden Hour Walk',       caption: 'October 2023 · Leaves, light, and your hand in mine.',    fallback: 'linear-gradient(135deg,#d6eaf8,#a9cce3)', span: '' },
 ]
 
 const FILTERS = ['all', 'travel', 'celebrations', 'everyday']
@@ -25,54 +25,49 @@ export default function Photos() {
   const visible = PHOTOS.filter(p => active === 'all' || p.cat === active)
 
   return (
-    <section className="slide-section photos-slide">
-      <div className="w-full max-w-6xl mx-auto px-6 flex flex-col h-full">
+    <section id="photos" className="py-28 bg-cream">
+      <div className="max-w-6xl mx-auto px-6">
+        <p className="section-tag reveal">Captured moments</p>
+        <h2 className="section-title reveal">Photo <em className="italic text-rose">Memories</em></h2>
+        <p className="section-desc reveal">
+          A gallery of the moments that made us — frozen in light and colour.
+        </p>
 
-        {/* Header */}
-        <div className="pt-24 pb-5 flex-shrink-0">
-          <p className="section-tag reveal-slide">Captured moments</p>
-          <h2 className="section-title reveal-slide">
-            Photo <em className="italic text-rose">Memories</em>
-          </h2>
-
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 reveal-slide">
-            {FILTERS.map(f => (
-              <button key={f} onClick={() => setActive(f)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium tracking-widest uppercase border-[1.5px] transition-all duration-200 ${
-                  active === f
-                    ? 'bg-rose border-rose text-white shadow-md'
-                    : 'border-blush-deep text-ink-soft hover:border-rose hover:text-rose'
-                }`}>
-                {f}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-3 mb-10 reveal">
+          {FILTERS.map(f => (
+            <button key={f} onClick={() => setActive(f)}
+              className={`px-5 py-2 rounded-full text-xs font-medium tracking-widest uppercase border-[1.5px] transition-all duration-200 ${
+                active === f
+                  ? 'bg-rose border-rose text-white shadow-md'
+                  : 'border-blush-deep text-ink-soft hover:border-rose hover:text-rose'
+              }`}>
+              {f}
+            </button>
+          ))}
         </div>
 
-        {/* Photo grid — fills remaining space */}
-        <div className="photos-grid flex-1 pb-24 reveal-slide">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[260px]">
           {visible.map(photo => (
             <div key={photo.id}
               onClick={() => setLightbox(photo)}
-              className="photo-card relative rounded-2xl overflow-hidden cursor-pointer"
+              className={`photo-card relative rounded-2xl overflow-hidden cursor-pointer reveal ${
+                photo.span === 'tall' ? 'sm:row-span-2' :
+                photo.span === 'wide' ? 'sm:col-span-2' : ''
+              }`}
               style={{ background: photo.fallback }}>
-
               <img src={photo.src} alt={photo.title}
                 className="photo-img absolute inset-0 w-full h-full object-cover"
                 onError={e => { e.currentTarget.style.display = 'none' }} />
-
-              <div className="photo-overlay absolute inset-0 flex flex-col justify-end p-4"
-                style={{ background: 'linear-gradient(transparent, rgba(40,15,15,.72))' }}>
-                <h4 className="font-display text-lg text-white font-medium leading-tight">{photo.title}</h4>
-                <p className="text-xs text-white/70 mt-0.5">{photo.caption}</p>
+              <div className="photo-overlay absolute inset-0 flex flex-col justify-end p-5"
+                style={{ background: 'linear-gradient(transparent, rgba(40,15,15,.7))' }}>
+                <h4 className="font-display text-xl text-white font-medium mb-1">{photo.title}</h4>
+                <p className="text-xs text-white/75">{photo.caption}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
         <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-black/88 backdrop-blur-sm"
           onClick={() => setLightbox(null)}>
