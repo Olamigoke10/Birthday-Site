@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 const SEED_ENTRIES = [
   {
@@ -7,15 +7,13 @@ const SEED_ENTRIES = [
     relation: 'Best Friend',
     date: 'June 18, 2026',
     msg: 'To the woman who turns every ordinary Tuesday into something worth remembering — may this birthday be as luminous and extraordinary as you are. The world is simply lovelier with you in it.',
-    polished: true,
   },
   {
     id: 'seed-2',
     name: 'James Rivera',
     relation: 'Family',
     date: 'June 18, 2026',
-    msg: 'Watching you bloom into the remarkable person you are today has been one of the greatest joys of my life. Happy Birthday — here\'s to another year of adventures, laughter, and everything wonderful.',
-    polished: true,
+    msg: "Watching you bloom into the remarkable person you are today has been one of the greatest joys of my life. Happy Birthday — here's to another year of adventures, laughter, and everything wonderful.",
   },
   {
     id: 'seed-3',
@@ -23,7 +21,6 @@ const SEED_ENTRIES = [
     relation: 'Colleague',
     date: 'June 18, 2026',
     msg: 'Your warmth and brilliance light up every room and every project we share. Wishing you a birthday filled with the same joy and energy you so generously give to everyone around you.',
-    polished: true,
   },
 ]
 
@@ -36,58 +33,29 @@ const RELATIONS = [
 ]
 
 export default function GuestBook() {
-  const [entries,   setEntries]   = useState(SEED_ENTRIES)
-  const [name,      setName]      = useState('')
-  const [relation,  setRelation]  = useState('friend')
-  const [message,   setMessage]   = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [preview,   setPreview]   = useState(null)
-  const [error,     setError]     = useState('')
+  const [entries,  setEntries]  = useState(SEED_ENTRIES)
+  const [name,     setName]     = useState('')
+  const [relation, setRelation] = useState('friend')
+  const [message,  setMessage]  = useState('')
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim() || !message.trim()) return
-    setError('')
-    setLoading(true)
 
-    try {
-      const res = await fetch('/api/polish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, relation, rawMessage: message }),
-      })
-      if (!res.ok) throw new Error('API error')
-      const data = await res.json()
-      setPreview(data.polished || message)
-    } catch {
-      // Graceful fallback: post raw message without polish badge
-      postEntry(message, false)
-      reset()
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function postEntry(msg, wasPolished) {
     const relLabel = RELATIONS.find(r => r.value === relation)?.label ?? 'Guest'
-    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    const date = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+
     setEntries(prev => [{
       id: Date.now().toString(),
       name: name.trim(),
       relation: relLabel,
       date,
-      msg,
-      polished: wasPolished,
+      msg: message.trim(),
     }, ...prev])
-  }
 
-  function reset() {
-    setName(''); setRelation('friend'); setMessage(''); setPreview(null)
-  }
-
-  function confirmPost() {
-    postEntry(preview, true)
-    reset()
+    setName(''); setRelation('friend'); setMessage('')
   }
 
   return (
@@ -96,7 +64,7 @@ export default function GuestBook() {
         <p className="section-tag reveal">Leave your mark</p>
         <h2 className="section-title reveal">Guest <em className="italic text-rose">Book</em></h2>
         <p className="section-desc reveal">
-          Share a birthday wish. Our AI will gently polish your words into something timeless — then you decide whether to post it.
+          Share a birthday wish for Dara — a memory, a message, or something from the heart.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -131,34 +99,9 @@ export default function GuestBook() {
               />
             </Field>
 
-            {error && <p className="text-rose text-sm mb-3">{error}</p>}
-
-            {!preview && (
-              <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-2 disabled:opacity-60">
-                {loading ? 'Polishing your words…' : 'Polish & Post ✦'}
-              </button>
-            )}
-
-            <p className="text-xs text-ink-muted italic mt-3">
-              ✦ Your message will be beautifully refined by AI before posting.
-            </p>
-
-            {/* Preview */}
-            {preview && (
-              <div className="mt-5 p-5 rounded-2xl border border-blush-deep"
-                style={{ background: 'linear-gradient(135deg, #fff5f5, #fde8f0)' }}>
-                <h4 className="font-display text-lg text-rose-dark mb-3">Polished Preview</h4>
-                <p className="italic text-ink leading-relaxed mb-4">"{preview}"</p>
-                <div className="flex gap-3 flex-wrap">
-                  <button type="button" onClick={() => setPreview(null)} className="btn-ghost text-sm px-5 py-2">
-                    Edit Original
-                  </button>
-                  <button type="button" onClick={confirmPost} className="btn-primary text-sm px-5 py-2">
-                    Post This ✦
-                  </button>
-                </div>
-              </div>
-            )}
+            <button type="submit" className="btn-primary w-full justify-center mt-2">
+              Post Message ✦
+            </button>
           </form>
 
           {/* ── ENTRIES ── */}
@@ -166,8 +109,10 @@ export default function GuestBook() {
             {entries.map(entry => (
               <div key={entry.id} className="gb-entry bg-white rounded-2xl p-6 shadow-sm border-l-4 border-rose">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-rose-dark font-semibold text-base flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #f9d5d3, #d4a5b5)' }}>
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-rose-dark font-semibold text-base flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #f9d5d3, #d4a5b5)' }}
+                  >
                     {entry.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
@@ -176,10 +121,7 @@ export default function GuestBook() {
                   </div>
                   <time className="ml-auto text-xs text-ink-muted">{entry.date}</time>
                 </div>
-                <p className="italic text-ink-soft leading-relaxed text-sm mb-2">"{entry.msg}"</p>
-                {entry.polished && (
-                  <span className="text-[.65rem] tracking-widest uppercase text-gold">✦ AI Polished</span>
-                )}
+                <p className="italic text-ink-soft leading-relaxed text-sm">"{entry.msg}"</p>
               </div>
             ))}
           </div>
@@ -198,5 +140,3 @@ function Field({ label, children }) {
     </div>
   )
 }
-
-/* Tailwind can't pick up dynamic class strings, so we define the input class in CSS */
