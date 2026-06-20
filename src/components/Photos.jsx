@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 const PHOTOS = [
   { id: 1, src: '/assets/photos/photo-1.jpg', cat: 'travel',       title: 'Our Weekend Escape',      caption: 'April 2023 · The coast was our whole world that day.',       fallback: 'linear-gradient(135deg,#f9d5d3,#e8b4b8)', span: '' },
@@ -13,18 +13,7 @@ const FILTERS = ['all', 'travel', 'celebrations', 'everyday']
 
 export default function Photos() {
   const [active,   setActive]   = useState('all')
-  const [lightbox, setLightbox] = useState(null)   // { src, title, caption }
-  const sectionRef = useRef(null)
-
-  useEffect(() => {
-    const els = sectionRef.current?.querySelectorAll('.reveal') ?? []
-    const io = new IntersectionObserver(entries =>
-      entries.forEach(({ target, isIntersecting }) => {
-        if (isIntersecting) { target.classList.add('visible'); io.unobserve(target) }
-      }), { threshold: 0.08 })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [])
+  const [lightbox, setLightbox] = useState(null)
 
   useEffect(() => {
     document.body.style.overflow = lightbox ? 'hidden' : ''
@@ -36,7 +25,7 @@ export default function Photos() {
   const visible = PHOTOS.filter(p => active === 'all' || p.cat === active)
 
   return (
-    <section id="photos" ref={sectionRef} className="py-28 bg-cream">
+    <section id="photos" className="py-28 bg-cream">
       <div className="max-w-6xl mx-auto px-6">
         <p className="section-tag reveal">Captured moments</p>
         <h2 className="section-title reveal">Photo <em className="italic text-rose">Memories</em></h2>

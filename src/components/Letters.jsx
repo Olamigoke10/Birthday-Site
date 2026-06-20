@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 
 const LETTERS = [
   {
@@ -40,20 +40,8 @@ const FALLBACKS = [
 ]
 
 export default function Letters() {
-  const sectionRef = useRef(null)
-
-  useEffect(() => {
-    const els = sectionRef.current?.querySelectorAll('.reveal') ?? []
-    const io = new IntersectionObserver(entries =>
-      entries.forEach(({ target, isIntersecting }) => {
-        if (isIntersecting) { target.classList.add('visible'); io.unobserve(target) }
-      }), { threshold: 0.08 })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [])
-
   return (
-    <section id="letters" ref={sectionRef} className="py-28 bg-cream-dark">
+    <section id="letters" className="py-28 bg-cream-dark">
       <div className="max-w-6xl mx-auto px-6">
         <p className="section-tag reveal">Written with love</p>
         <h2 className="section-title reveal">Handwritten <em className="italic text-rose">Letters</em></h2>

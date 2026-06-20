@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 const SEED_ENTRIES = [
   {
@@ -41,19 +41,8 @@ export default function GuestBook() {
   const [relation,  setRelation]  = useState('friend')
   const [message,   setMessage]   = useState('')
   const [loading,   setLoading]   = useState(false)
-  const [preview,   setPreview]   = useState(null)   // polished text
+  const [preview,   setPreview]   = useState(null)
   const [error,     setError]     = useState('')
-  const sectionRef = useRef(null)
-
-  useEffect(() => {
-    const els = sectionRef.current?.querySelectorAll('.reveal') ?? []
-    const io = new IntersectionObserver(entries =>
-      entries.forEach(({ target, isIntersecting }) => {
-        if (isIntersecting) { target.classList.add('visible'); io.unobserve(target) }
-      }), { threshold: 0.08 })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -102,7 +91,7 @@ export default function GuestBook() {
   }
 
   return (
-    <section id="guestbook" ref={sectionRef} className="py-28 bg-cream-dark">
+    <section id="guestbook" className="py-28 bg-cream-dark">
       <div className="max-w-6xl mx-auto px-6">
         <p className="section-tag reveal">Leave your mark</p>
         <h2 className="section-title reveal">Guest <em className="italic text-rose">Book</em></h2>

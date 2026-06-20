@@ -31,25 +31,57 @@
     @apply text-base text-ink-soft max-w-lg leading-relaxed mb-12;
   }
 
+  /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium tracking-widest uppercase text-white transition-all duration-300;
+    @apply inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium tracking-widest uppercase text-white;
     background: linear-gradient(135deg, #c97b84, #a85965);
     box-shadow: 0 4px 20px rgba(168,89,101,.35);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    will-change: transform;
   }
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(168,89,101,.45);
+    transform: scale(1.06) translateY(-2px);
+    box-shadow: 0 8px 32px rgba(168,89,101,.55), 0 0 0 4px rgba(201,123,132,.18);
   }
+  .btn-primary:active { transform: scale(0.97); }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium tracking-wider uppercase transition-all duration-300;
+    @apply inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium tracking-wider uppercase;
     border: 1.5px solid #c97b84;
     color: #c97b84;
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
-  .btn-ghost:hover { background: #f9d5d3; }
+  .btn-ghost:hover {
+    background: #f9d5d3;
+    transform: scale(1.04);
+    box-shadow: 0 4px 16px rgba(201,123,132,.2);
+  }
+
+  /* Celebrate button */
+  .celebrate-btn {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .celebrate-btn:hover {
+    transform: scale(1.06) translateY(-2px);
+    box-shadow: 0 8px 28px rgba(201,169,110,.55), 0 0 0 4px rgba(201,169,110,.18);
+  }
+
+  /* Form input */
+  .input-base {
+    @apply w-full px-4 py-3 rounded-lg text-sm text-ink bg-cream border-[1.5px] border-blush-deep outline-none;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+  .input-base:focus {
+    @apply border-rose;
+    box-shadow: 0 0 0 3px rgba(201,123,132,.15);
+  }
 }
 
-/* Petal animation */
+/* ═══════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════ */
+
+/* Falling petals */
 .petal {
   position: absolute;
   border-radius: 50% 10% 50% 10%;
@@ -71,34 +103,91 @@
 }
 .scroll-line { animation: scrollLine 1.8s ease-in-out infinite; }
 
-/* Reveal on scroll */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity .7s ease, transform .7s ease;
-}
-.reveal.visible { opacity: 1; transform: none; }
+/* ── Decorative element animations ── */
 
-/* Letter card flip envelope */
-.letter-card { perspective: 1000px; }
-.letter-card:hover .letter-inner { transform: translateY(-6px) rotate(-.5deg); }
-.letter-inner {
-  transition: transform .35s cubic-bezier(.4,0,.2,1),
-              box-shadow .35s cubic-bezier(.4,0,.2,1);
+/* Float — gentle sine-wave vertical drift */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(-3deg); }
+  50%       { transform: translateY(-18px) rotate(3deg); }
 }
-.letter-card:hover .letter-inner { box-shadow: 0 20px 50px rgba(180,120,120,.2); }
+.deco-float {
+  animation: float ease-in-out infinite;
+  will-change: transform;
+}
 
-/* Photo grid hover */
+/* Spin slow — continuous rotation */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.deco-spin {
+  animation: spinSlow linear infinite;
+  will-change: transform;
+}
+
+/* Pulse glow — scale + opacity breathe */
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 4px rgba(201,123,132,.3)); }
+  50%       { transform: scale(1.2); filter: drop-shadow(0 0 12px rgba(201,123,132,.7)); }
+}
+.deco-pulse {
+  animation: pulseGlow ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+/* ── Card hover micro-interactions ── */
+.letter-card {
+  perspective: 1000px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  will-change: transform;
+}
+.letter-card:hover {
+  transform: scale(1.04) translateY(-6px) rotate(-.5deg);
+  box-shadow: 0 20px 50px rgba(180,120,120,.22),
+              0 0 0 2px rgba(201,123,132,.15);
+}
+
+.photo-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  will-change: transform;
+}
+.photo-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 16px 40px rgba(180,120,120,.25),
+              0 0 0 2px rgba(201,123,132,.2);
+}
+
+/* Photo inner image zoom */
 .photo-overlay {
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity .35s ease, transform .35s ease;
+  transition: opacity 300ms ease, transform 300ms ease;
 }
 .photo-card:hover .photo-overlay { opacity: 1; transform: none; }
-.photo-card:hover .photo-img { transform: scale(1.05); }
-.photo-img { transition: transform .6s ease; }
 
-/* Lightbox */
+.photo-img { transition: transform 600ms ease; }
+.photo-card:hover .photo-img { transform: scale(1.07); }
+
+/* Guest book entry hover */
+.gb-entry {
+  animation: entryIn .45s ease both;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  will-change: transform;
+}
+.gb-entry:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 28px rgba(180,120,120,.15);
+}
+
+/* ── Reveal on scroll ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition: opacity .65s ease, transform .65s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── Lightbox ── */
 .lightbox {
   opacity: 0;
   pointer-events: none;
@@ -106,25 +195,39 @@
 }
 .lightbox.open { opacity: 1; pointer-events: all; }
 
-/* Guest book entry */
-@keyframes entryIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: none; }
-}
-.gb-entry { animation: entryIn .45s ease both; }
-
-/* Form input */
-.input-base {
-  @apply w-full px-4 py-3 rounded-lg text-sm text-ink bg-cream border-[1.5px] border-blush-deep outline-none transition-all duration-300;
-}
-.input-base:focus {
-  @apply border-rose;
-  box-shadow: 0 0 0 3px rgba(201,123,132,.15);
-}
-
-/* Nav mobile drawer */
+/* ── Nav mobile drawer ── */
 .nav-drawer {
   transition: transform .35s cubic-bezier(.4,0,.2,1);
   transform: translateX(100%);
 }
 .nav-drawer.open { transform: translateX(0); }
+
+/* ── Guest book entry entrance ── */
+@keyframes entryIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ═══════════════════════════════════════════
+   REDUCED MOTION OVERRIDES
+   ═══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .petal,
+  .deco-float,
+  .deco-spin,
+  .deco-pulse,
+  .scroll-line,
+  .gb-entry { animation: none !important; }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .letter-card:hover,
+  .photo-card:hover,
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .celebrate-btn:hover,
+  .gb-entry:hover { transform: none; }
+}
